@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+ #map {
+        width: 100%;
+        height: 320px;
+     }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      var map,
+          marker;
+
+      function initMap() {
+        var aLTAIRLatInput = window.parent.p5frame.document.getElementById('gLTAIRLat');
+        var aLTAIRLonInput = window.parent.p5frame.document.getElementById('gLTAIRLon');
+        var ALTAIRLat = parseFloat(aLTAIRLatInput.value);
+        var ALTAIRLon = parseFloat(aLTAIRLonInput.value);
+
+//        var ALTAIRLatLng = {lat: 48.4633, lng: -123.3117};
+        var ALTAIRLatLng = {lat: ALTAIRLat, lng: ALTAIRLon};
+        var mapDiv = document.getElementById('map');
+        map = new google.maps.Map(mapDiv, {
+            center: ALTAIRLatLng,
+            zoom: 14
+        });
+        marker = new google.maps.Marker({
+            position: ALTAIRLatLng,
+            map: map,
+            title: 'ALTAIR'
+        });
+        map.panTo(ALTAIRLatLng);
+
+        window.setTimeout(function() {
+            initMap();
+        }, 5000);
+
+      }
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCuoR_30YvunXAl3RPIARoQ4Ybv7UQSKUM&callback=initMap">
+    </script>
+  </body>
+</html>
