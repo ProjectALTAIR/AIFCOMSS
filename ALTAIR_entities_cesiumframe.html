@@ -15,13 +15,6 @@
           width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
           font-family: sans-serif;
       }
-      #controlPanel {
-        position: absolute;
-        top: 5px;
-        left: 5px;
-        padding: 5px 8px;
-        border-radius: 5px;
-      }
       label {
         cursor: pointer;
       }
@@ -32,15 +25,6 @@
 </head>
 <body>
   <div id="cesiumContainer"></div>
-  <div id="controlPanel">
-      <label>
-        <input id="propCheckbox" type="checkbox" checked />
-        <span>Enable propeller rotation</span>
-      </label><br/>
-      <button class="cesium-button">Button 1</button>
-      <button class="cesium-button">Button 2</button>
-    </p>
-  </div>
   <script>
     Cesium.BingMapsApi.defaultKey = 'Av1e_tU47MpctkXtV8iHe0NcnYUu-ditxZrofMwmqx-2EbRuotZh-P7QYRzt_uis';
     var viewer = new Cesium.Viewer('cesiumContainer');
@@ -54,7 +38,7 @@
 //    viewer.scene.globe.enableLighting = true;
 //    viewer.cesiumWidget.creditContainer.parentElement.style.bottom = '0px';
     viewer.cesiumWidget.creditContainer = '';
-    var propCheckbox = document.getElementById('propCheckbox');
+//    var propCheckbox = document.getElementById('propCheckbox');
 
 // var ALTAIRLat =   48.4593;
 // var ALTAIRLon = -123.3117;
@@ -84,11 +68,20 @@ var ALTAIR = viewer.entities.add({
     box : {
         dimensions : new Cesium.Cartesian3(18, 0.05, 0.05),
         material : Cesium.Color.BLACK
-    },
-    cylinder : {
-        length : 1.5,
-        topRadius : 1,
-        bottomRadius : 1,
+    }
+//     , cylinder : {
+//         length : 1.5,
+//         topRadius : 1,
+//         bottomRadius : 1,
+//         material : Cesium.Color.ORANGE
+//     }
+});
+
+var ALTAIRGondola = viewer.entities.add({
+    name : 'ALTAIRGondola',
+    position: Cesium.Cartesian3.fromDegrees(ALTAIRLon, ALTAIRLat, ALTAIRAlt),
+    box : {
+        dimensions : new Cesium.Cartesian3(1.5, 1.5, 1.2),
         material : Cesium.Color.ORANGE
     }
 });
@@ -114,7 +107,7 @@ var ALTAIRParachute = viewer.entities.add({
 });
 
 // var propCheckboxChecked = true;
-var propCheckboxChecked = propCheckbox.checked;
+// var propCheckboxChecked = propCheckbox.checked;
 var eventCounter = 0;
 var propAngle = [1.0, 0.0, 0.8, 0.3];
 var motorLatDelta = [ 0.0,      0.0    , 0.0    , 0.0    ];
@@ -193,13 +186,9 @@ for (var i = 0; i < 4; ++i) {
 }
 
 
-propCheckbox.addEventListener('change', function() {
-   propCheckboxChecked = propCheckbox.checked ? true : false;
-}, false);
-
 viewer.clock.onTick.addEventListener(function () {
     eventCounter++;
-    if (eventCounter % 5 == 0 && propCheckboxChecked) {
+    if (eventCounter % 5 == 0) {
         aLTAIRLatInput = window.parent.p5frame.document.getElementById('gLTAIRLat');
         aLTAIRLonInput = window.parent.p5frame.document.getElementById('gLTAIRLon');
         aLTAIRAltInput = window.parent.p5frame.document.getElementById('gLTAIRAlt');
@@ -208,6 +197,7 @@ viewer.clock.onTick.addEventListener(function () {
         ALTAIRAlt = parseFloat(aLTAIRAltInput.value);
 
         ALTAIR.position          = Cesium.Cartesian3.fromDegrees(ALTAIRLon, ALTAIRLat, ALTAIRAlt);
+        ALTAIRGondola.position   = Cesium.Cartesian3.fromDegrees(ALTAIRLon, ALTAIRLat, ALTAIRAlt);
         ALTAIRBalloon.position   = Cesium.Cartesian3.fromDegrees(ALTAIRLon, ALTAIRLat, ALTAIRAlt + 20.);
         ALTAIRParachute.position = Cesium.Cartesian3.fromDegrees(ALTAIRLon, ALTAIRLat, ALTAIRAlt +  7.);
     

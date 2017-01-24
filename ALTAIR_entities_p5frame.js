@@ -21,6 +21,8 @@ var    fiveBarRSSI            =   -11.0;  // in dBm -- very strong signal streng
 var    minVoltage             =    11.1;  // volts
 var    maxVoltage             =    12.9;  // volts
 
+var    lightSources           =     3;    // 1 = integrating sphere light source installed, 2 = diffusive light source installed, 3 = both installed, 0 = neither installed
+
 var    buttonSquareSize       =    12;    // pixels
 var    buttonSqCornerRadius   =     6;    // pixels 
 var    buttonSpacing          =    15;    // pixels
@@ -30,30 +32,29 @@ var    oldyaw = 0., oldpitch = 0., oldroll = 0.;
 var    orientGraphics, accelGraphics;
 
 var    alarm;
-var    blockButtons = false;
-var    alarmOn      = []; // There are  numAlarms  alarms.  For each one: 0 == off, 1 == on but silenced, 2 == on (and not silenced)
-var    alarmCounter = 0;
+var    blockButtons      = false;
+var    alarmOn           = []; // There are  numAlarms  alarms.  For each one: 0 == off, 1 == on but silenced, 2 == on (and not silenced)
+var    alarmCounter      = 0;
 
-var    setting      = [];
-var    rpm          = [];
-var    current      = [];
-var    temp         = [];
-var    accel        = [];
-// var    propRotAng   = [];
+var    setting           = [];
+var    rpm               = [];
+var    current           = [];
+var    temp              = [];
+var    accel             = [];
+// var    propRotAng        = [];
 var    yaw, pitch, roll, rotAng;
 var    UM7health, UM7temp;
 
-var    voltage  = [];
-var    pressure = [];
-var    humidity = [];
+var    voltage           = [];
+var    pressure          = [];
+var    humidity          = [];
+var    photodiodeReadout = [];
 var    lat, long, ele, horizSigma, vertSigma;
 var    gLTAIRLat, gLTAIRLon, gLTAIRAlt;
 var    groundLat, groundLong, groundEle;
 var    altairRSSI, groundRSSI;
 var    microSDSpaceOccupied, microSDSpaceRemaining;
 var    lightSourceStatus;
-var    photodiode1Readout;
-var    photodiode2Readout;
 var    isCutdown;
 var    cutdownSteeringServoRotAng;
 var    heliumBleedValveRotAng;
@@ -112,8 +113,33 @@ function draw() {
 }
 
 function getAltairArduinoInfoLine() {
-  setFakeAltairValues();
+  if (testArduinoUnconnected) setFakeAltairValues();
+  else {
+
+  }
 }
+
+socket.on('message', function(data, flags) {
+/*
+  if (data != null && !flags.binary) {
+    var altairValues = split(data, ' ').map(parseFloat);    
+//    var altairValues = data.split(' ').map(parseFloat);    
+    
+    switch (altairValues.length) {
+      case 88:
+
+      case 32:
+
+      case 10:
+
+        break;
+      default:
+        'Unparseable serial data received -- check logs!'
+        if (alarmOn[xy] == 0) alarmOn[xy] = 2;
+    }
+  }
+*/
+});
 
 function displayPropulsionSystemInfo() {
   var upperMotorIsRed = 0, lowerMotorIsRed = 0, upperPropIsGreen = 0, lowerPropIsGreen = 0, upperPropIsRed = 0, lowerPropIsRed = 0;
@@ -1147,91 +1173,172 @@ function makeLightSourceButtons() {
   var isOn = [];
   var rfill = 0.; var gfill = 0.; var bfill = 0.;
   x[0] = 514.; x[1] = 548.; x[2] = 582.; x[3] = 616.;
-  r[0] = 0.; r[1] = 0.;  r[2] = 1.; r[3] = 0.6;
-  g[0] = 0.; g[1] = 0.6; g[2] = 0.; g[3] = 0.;
-  b[0] = 1.; b[1] = 0.;  b[2] = 0.; b[3] = 0.;
+  r[0] = 0.; r[1] = 0.;  r[2] = 1.; r[3] = 0.6; r[4] = 0.;  r[5] = 0.;  r[6] = 0.9; r[7] = 1.;
+  g[0] = 0.; g[1] = 0.6; g[2] = 0.; g[3] = 0.;  g[4] = 0.4; g[5] = 0.9; g[6] = 0.9; g[7] = 0.;
+  b[0] = 1.; b[1] = 0.;  b[2] = 0.; b[3] = 0.;  b[4] = 0.8; b[5] = 0.;  b[6] = 0.;  b[7] = 0.;
 
 
   stroke(0);
 //  fill(0, 1, 0);
 
-  for (var i = 0; i < 4; ++i) {  
+  // integrating sphere light sources
+  if (lightSources == 1 || lightSources == 3) {
+    for (var i = 0; i < 4; ++i) {  
 
-    textSize(32);
-    if (((lightSourceStatus & (1 << i)) >> i) == 1) isOn[i] = true; 
-    else                                            isOn[i] = false;
+      textSize(32);
+      if (((lightSourceStatus & (1 << i)) >> i) == 1) isOn[i] = true; 
+      else                                            isOn[i] = false;
 
-    if (isOn[i]) {
-      fill(r[i], g[i], b[i]);
-      rfill += r[i]; if (rfill > 1.) rfill = 1.;
-      gfill += g[i]; if (gfill > 1.) gfill = 1.;
-      bfill += b[i]; if (bfill > 1.) bfill = 1.;
-    } else {        
-      fill(0,    0,    0);
-    }
-    if ((x[i]-mouseX)*(x[i]-mouseX) + (y-mouseY)*(y-mouseY) < (d/2.)*(d/2.)) {
-      overButton = 50 + 2*i;
-      if (isOn[i]) ++overButton;
-      if (mouseIsPressed) {
-        fill(1.,0.5,0.5);
-      } else {
-        overButton = -999;
+      if (isOn[i]) {
+        fill(r[i], g[i], b[i]);
+        rfill += r[i]; if (rfill > 1.) rfill = 1.;
+        gfill += g[i]; if (gfill > 1.) gfill = 1.;
+        bfill += b[i]; if (bfill > 1.) bfill = 1.;
+      } else {        
+        fill(0,    0,    0);
       }
-      ellipse(x[i], y, d, d);
-      if (isOn[i]) drawType("X", x[i] - 11., y + 11., r[i],  g[i],  b[i]);
-      textSize(10);
-      drawType("turn", x[i] - 10., y - 2., isOn[i] ? 0 : r[i], isOn[i] ? 0 : g[i], isOn[i] ? 0 : b[i]);
-      if (isOn[i]) drawType("OFF", x[i] - 12., y + 8., 0, 0, 0);
-      else         drawType("ON",  x[i] - 9.,  y + 8., r[i], g[i], b[i]);
-    } else {
-      ellipse(x[i], y, d, d);
-      if (!isOn[i]) drawType("X", x[i] - 11., y + 11., r[i],  g[i],  b[i]);
-      textSize(10);
-      drawType("turn", x[i] - 10., y - 2., 1, 1, 1);
-      if (isOn[i]) drawType("OFF", x[i] - 11., y + 8., 1, 1, 1);
-      else         drawType("ON",  x[i] -  9., y + 8., 1, 1, 1);
+      if ((x[i]-mouseX)*(x[i]-mouseX) + (y-mouseY)*(y-mouseY) < (d/2.)*(d/2.)) {
+        overButton = 50 + 2*i;
+        if (isOn[i]) ++overButton;
+        if (mouseIsPressed) {
+          fill(1.,0.5,0.5);
+        } else {
+          overButton = -999;
+        }
+        ellipse(x[i], y, d, d);
+        if (isOn[i]) drawType("X", x[i] - 11., y + 11., r[i],  g[i],  b[i]);
+        textSize(10);
+        drawType("turn", x[i] - 10., y - 2., isOn[i] ? 0 : r[i], isOn[i] ? 0 : g[i], isOn[i] ? 0 : b[i]);
+        if (isOn[i]) drawType("OFF", x[i] - 12., y + 8., 0, 0, 0);
+        else         drawType("ON",  x[i] - 9.,  y + 8., r[i], g[i], b[i]);
+      } else {
+        ellipse(x[i], y, d, d);
+        if (!isOn[i]) drawType("X", x[i] - 11., y + 11., r[i],  g[i],  b[i]);
+        textSize(10);
+        drawType("turn", x[i] - 10., y - 2., 1, 1, 1);
+        if (isOn[i]) drawType("OFF", x[i] - 11., y + 8., 1, 1, 1);
+        else         drawType("ON",  x[i] -  9., y + 8., 1, 1, 1);
+      }
+      if (isOn[i]) drawType("ON",  x[i] -  9., y - 26., 0, 0, 0);
+      else         drawType("OFF", x[i] - 11., y - 26., 0, 0, 0);
     }
-    if (isOn[i]) drawType("ON",  x[i] -  9., y - 26., 0, 0, 0);
-    else         drawType("OFF", x[i] - 11., y - 26., 0, 0, 0);
+
+    fill(1, 1, 1);
+    ellipse(565, 378, 45, 45);
+    drawType(nfp(photodiodeReadout[0],1,3),    503.,  387., 0.,                        0.,                           0.);
+    drawType(nfp(photodiodeReadout[1],1,3),    594.,  387., 0.,                        0.,                           0.);
+    drawType("V", 530, 387, 0, 0, 0);
+    drawType("V", 621, 387, 0, 0, 0);
+
+    noStroke();
+    if (rfill == 0 && gfill == 0 && bfill == 0) fill(1, 1, 1);
+    else                                        fill(rfill, gfill, bfill);
+    quad(560, 400,
+         570, 400,
+         630, 497,
+         500, 497);
+    fill(0, 0, 0);
+    quad(581, 394,
+         586, 389,
+         591, 394,
+         586, 399);
+    quad(549, 394,
+         544, 389,
+         539, 394,
+         544, 399);
+    drawType("440 nm", 492, 313, 0, 0, 0);
+    drawType("532 nm", 529, 313, 0, 0, 0);
+    drawType("635 nm", 566, 313, 0, 0, 0);
+    drawType("690 nm", 603, 313, 0, 0, 0);
+
+    drawType("PD1", 510, 365, 0, 0, 0);
+    drawType("readout:", 501, 375, 0, 0, 0);
+    drawType("PD2", 602, 365, 0, 0, 0);
+    drawType("readout:", 593, 375, 0, 0, 0);
   }
 
-  fill(1, 1, 1);
-  ellipse(565, 378, 45, 45);
-  drawType(nfp(photodiode1Readout,1,3),    496.,  392., 0.,                        0.,                           0.);
-  drawType(nfp(photodiode2Readout,1,3),    598.,  392., 0.,                        0.,                           0.);
-  drawType("V", 523, 392, 0, 0, 0);
-  drawType("V", 625, 392, 0, 0, 0);
+  // diffusive light sources
+  if (lightSources == 2 || lightSources == 3) {
+    rfill = 0.; gfill = 0.; bfill = 0.;
 
-  noStroke();
-  if (rfill == 0 && gfill == 0 && bfill == 0) fill(1, 1, 1);
-  else                                        fill(rfill, gfill, bfill);
-  quad(560, 400,
-       570, 400,
-       630, 497,
-       500, 497);
-  fill(0, 0, 0);
-  quad(581, 394,
-       586, 389,
-       591, 394,
-       586, 399);
-  quad(549, 394,
-       544, 389,
-       539, 394,
-       544, 399);
-  drawType("440 nm", 492, 313, 0, 0, 0);
-  drawType("532 nm", 529, 313, 0, 0, 0);
-  drawType("635 nm", 566, 313, 0, 0, 0);
-  drawType("690 nm", 603, 313, 0, 0, 0);
+    noStroke();
+    textSize(10);
+    drawType("PD - D", 454, 385, 0, 0, 0);
+    drawType("readout:", 451, 395, 0, 0, 0);
 
-  drawType("PD1", 505, 370, 0, 0, 0);
-  drawType("readout:", 496, 380, 0, 0, 0);
-  drawType("PD2", 607, 370, 0, 0, 0);
-  drawType("readout:", 598, 380, 0, 0, 0);
+    stroke(0);
+    strokeWeight(0.5);
+
+    rect(504, 391, 3, 3);
+    fill(1., 1., 1.);
+    rect(496, 395, 37, 5);
+    drawType(nfp(photodiodeReadout[2],1,3),    452.,  407., 0.,                        0.,                           0.);
+    drawType("V", 479, 407, 0, 0, 0);
+
+    for (var i = 4; i < 8; ++i) {
+      var j = i - 4;
+
+      if (((lightSourceStatus & (1 << i)) >> i) == 1) isOn[j] = true;
+      else                                            isOn[j] = false;
+
+      if (isOn[j]) {
+        fill(r[i], g[i], b[i]);
+        rfill += r[i]; if (rfill > 1.) rfill = 1.;
+        gfill += g[i]; if (gfill > 1.) gfill = 1.;
+        bfill += b[i]; if (bfill > 1.) bfill = 1.;
+      } else {
+        fill(0,    0,    0);
+      }
+      textSize(22);
+      if ((mouseX > 470. && mouseX < 487.) && (mouseY > 412.+(22.*j) && mouseY < 429.+(22.*j))) { 
+        overButton = 60 + 2*j;
+        if (isOn[j]) ++overButton;
+        if (mouseIsPressed) {
+          fill(1.,0.5,0.5);
+        } else {
+          overButton = -999;
+        }
+        rect(470., 412.+(22.*j), 17., 17.);
+        if (isOn[j]) drawType("X", 471., 429.+(22.*j), r[i],  g[i],  b[i]);
+        textSize(7);
+        drawType("turn", 472., 419.+(22.*j), isOn[j] ? 0 : r[i], isOn[j] ? 0 : g[i], isOn[j] ? 0 : b[i]);
+        if (isOn[j]) drawType("OFF", 471., 428.+(22.*j), 0, 0, 0);
+        else         drawType("ON",  473., 428.+(22.*j), r[i], g[i], b[i]);
+      } else {
+        rect(470., 412.+(22.*j), 17., 17.);
+        if (!isOn[j]) drawType("X", 471., 429.+(22.*j), r[i],  g[i],  b[i]);
+        textSize(7);
+        drawType("turn", 472., 419.+(22.*j), 1, 1, 1);
+        if (isOn[j]) drawType("OFF", 471., 428.+(22.*j), 1, 1, 1);
+        else         drawType("ON",  473., 428.+(22.*j), 1, 1, 1);
+      }
+      textSize(9)
+      if (isOn[j]) drawType("ON",  449., 417.+(22.*j), 0, 0, 0);
+      else         drawType("OFF", 446., 417.+(22.*j), 0, 0, 0);
 
 
-  textSize(17)
-  stroke(0);
-  strokeWeight(0.5);
+    }
+
+    textSize(11);
+    noStroke();
+    if (rfill == 0 && gfill == 0 && bfill == 0) {
+       fill(1, 1, 1);
+    } else {
+      fill(rfill, gfill, bfill);
+      quad(496, 400,
+           533, 400,
+           542, 497,
+           487, 497);
+    }
+    drawType("Blue",   444, 428, 0, 0, 0);
+    drawType("Green",  439, 450, 0, 0, 0);
+    drawType("Yellow", 438, 472, 0, 0, 0);
+    drawType("Red",    445, 494, 0, 0, 0);
+    
+
+
+  }
+  textSize(17);
 
 }
 
@@ -1257,6 +1364,10 @@ function setFakeAltairValues() {
   var strLong    =  long.toString();
   var strEle     =  ele.toString();
 
+  textSize(150);
+  drawType("SIMULATED  DATA",             20., 305., 1.,                        0.85,                            0.85);
+  textSize(17);
+
   for (i = 0; i <  7; ++i) setting[i]    = 2.9;
   for (i = 0; i <  4; ++i) rpm[i]        = 5134.;
   for (i = 0; i <  4; ++i) current[i]    = 0.;
@@ -1274,9 +1385,10 @@ function setFakeAltairValues() {
   yaw = 0.; pitch = 0.; roll = 0.;
   UM7health = 0.; UM7temp = 0.;    
 
-  for (i = 0; i < 2; ++i) voltage[i]    = 11.9;
-  for (i = 0; i < 3; ++i) pressure[i]   = 101.000;  // kPa
-  for (i = 0; i < 3; ++i) humidity[i]   = 11.0;     // percentage
+  for (i = 0; i < 2; ++i) voltage[i]           = 11.9;
+  for (i = 0; i < 3; ++i) pressure[i]          = 101.000;  // kPa
+  for (i = 0; i < 3; ++i) humidity[i]          = 11.0;     // percentage
+  for (i = 0; i < 3; ++i) photodiodeReadout[i] = 0.        // voltage
 //  lat        =   48.4593;               // degrees (north = +, south = -)
   gLTAIRLat.setAttribute("value", strLat);
   gLTAIRLon.setAttribute("value", strLong);
@@ -1293,8 +1405,7 @@ function setFakeAltairValues() {
   groundRSSI =  -11.5;                  // dBm, ground -> ALTAIR
   microSDSpaceOccupied        =  920.;  // in MB
   microSDSpaceRemaining       = 7040.;  // in MB
-  lightSourceStatus           =    0 ;  // binary packed status integer
-  photodiode1Readout          =    0.; photodiode2Readout = 0.;  // voltages
+  lightSourceStatus           =    0 ;  // binary packed status integer -- 8 bits: 4 lsb for integrative sphere lasers, 4 msb for diffusive source LEDs
   isCutdown                   = false;
   setting[4]                  =   5.0;  //  out of 10
   setting[6]                  =   0.0;  //  out of 10
@@ -1344,8 +1455,18 @@ function mouseReleased() {
       lightNum = (overButton-50)/2;
       overButton = -999;
       socket.send('m'); socket.send('l');   // 'm'odify 'l'ight (ensure we avoid modifications due to noise)
-      socket.send(String.fromCharCode(lightNum+("A".charCodeAt(0))));            // write 'A' if light source 0, 'B' if light source 1, etc.
-      socket.send("LOG: Gave command to turn ON light source # " + lightNum);
+      socket.send(String.fromCharCode(lightNum+("A".charCodeAt(0))));            // write 'A' if laser diode light source 0, 'B' if laser diode light source 1, etc.
+      socket.send("LOG: Gave command to turn ON laser diode light source # " + lightNum);
+      break;
+    case 60:
+    case 62:
+    case 64:
+    case 66:
+      lightNum = (overButton-60)/2;
+      overButton = -999;
+      socket.send('m'); socket.send('l');   // 'm'odify 'l'ight (ensure we avoid modifications due to noise)
+      socket.send(String.fromCharCode(lightNum+("F".charCodeAt(0))));            // write 'F' if diffusive light source 0, 'G' if diffusive light source 1, etc.
+      socket.send("LOG: Gave command to turn ON diffusive light source # " + lightNum);
       break;
     case 1:
     case 3:
@@ -1369,8 +1490,18 @@ function mouseReleased() {
       lightNum = (overButton-51)/2;
       overButton = -999;
       socket.send('m'); socket.send('l');   // 'm'odify 'l'ight (ensure we avoid modifications due to noise)
-      socket.send(String.fromCharCode(lightNum+("a".charCodeAt(0))));            // write 'a' if light source 0, 'b' if light source 1, etc.
-      socket.send("LOG: Gave command to turn OFF light source # " + lightNum);
+      socket.send(String.fromCharCode(lightNum+("a".charCodeAt(0))));            // write 'a' if laser diode light source 0, 'b' if laser diode light source 1, etc.
+      socket.send("LOG: Gave command to turn OFF laser diode light source # " + lightNum);
+      break;
+    case 61:
+    case 63:
+    case 65:
+    case 67:
+      lightNum = (overButton-61)/2;
+      overButton = -999;
+      socket.send('m'); socket.send('l');   // 'm'odify 'l'ight (ensure we avoid modifications due to noise)
+      socket.send(String.fromCharCode(lightNum+("f".charCodeAt(0))));            // write 'f' if diffusive light source 0, 'g' if diffusive light source 1, etc.
+      socket.send("LOG: Gave command to turn OFF diffusive light source # " + lightNum);
       break;
     case 99:
       overButton = -999;

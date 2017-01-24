@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+    <script src="https://cdn.rawgit.com/Leaflet/Leaflet.label/0.8/dist/leaflet.label.js"></script>
+    <style type="text/css">
+      #windyty {
+                 width: 100%;
+                 height: 314px;
+               }
+      .labeltext { width: 400px; }
+    </style>
+  </head>
+  <body>
+    <div id="windyty"></div>
+
+    <script type="text/javascript">
+          
+    var windytyInit = {
+          // Required: API key
+          key: 'fJAcjkGrbADMg2t',
+
+          // Optional: Initial state of the map
+//          lat: 50.4,
+//          lon: 14.3,
+//          lat: ALTAIRLat,
+//          lon: ALTAIRLon,
+          lat:   48.46,
+          lon: -123.31,
+          zoom: 11
+      }  
+
+    // Required: Windyty main function is called after 
+    // initialization of API
+    //
+    // @map is instance of Leaflet maps
+    //
+    function windytyMain(map) {
+      var aLTAIRLatInput = window.parent.p5frame.document.getElementById('gLTAIRLat');
+      var aLTAIRLonInput = window.parent.p5frame.document.getElementById('gLTAIRLon');
+      var aLTAIRAltInput = window.parent.p5frame.document.getElementById('gLTAIRAlt');
+      var ALTAIRLat      = parseFloat(aLTAIRLatInput.value);
+      var ALTAIRLon      = parseFloat(aLTAIRLonInput.value);
+      var ALTAIRAlt      = aLTAIRAltInput.value;
+      var fixedALTAIRAlt = Math.round(ALTAIRAlt);
+      var ALTAIRAltText  = 'ALTAIR&nbsp;=&nbsp;' + fixedALTAIRAlt + '&nbsp;m&nbsp;ASL<br>Terrain&nbsp;=&nbsp;&nbsp;' + '&nbsp;&nbsp;xx&nbsp;m&nbsp;ASL';
+
+//      L.control.zoom.remove();
+//      map.zoomControl.remove();
+//      map.remove();
+//      var tooltip = L.tooltip("hi");
+//      map.zoomControl.setPosition('topleft');
+      var marker = L.marker([ALTAIRLat, ALTAIRLon])
+        .bindLabel(ALTAIRAltText, { noHide: true, offset: [20,-40] })
+//        .setOpacity( 0.65 )
+//        .bindTooltip("hi")
+        .addTo( map );
+      marker.setOpacity( 0.65 );
+
+      map.panTo([ALTAIRLat, ALTAIRLon]);
+
+      window.setTimeout(function() {
+        marker.remove();
+        windytyMain(map);
+      }, 5000);
+    }
+    
+
+    </script>
+
+    <script async defer src="https://api.windytv.com/v2.3/boot.js"></script> 
+  </body>
+</html>
