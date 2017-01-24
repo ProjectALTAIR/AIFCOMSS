@@ -9,7 +9,7 @@ Requires the prior installation of:
 Install each one of the above three, then:
 
  a) Download this (AIFCOMSS) repository to your Cesium main directory (which should replace the default server.js file that Cesium has included), <br>
- b) In that same Cesium main directory, type  "node server.js | tee <yourlogfile.log>" , <br>
+ b) In that same Cesium main directory, type  "node server.js | tee <<yourlogfile.log>>" , <br>
  c) Then, in a web browser, go to:  http://localhost:8080/AIFCOMSS.html . <br>
 
 You should then have AIFCOMSS running in your web browser.
