@@ -4,7 +4,7 @@ Requires the prior installation of:
 
  1) node.js ( https://nodejs.org/en/ ) <br>
  2) Cesium ( http://cesiumjs.org/downloads.html ) <br>
- 3) p5.js ( https://p5js.org/download/ ) <br>
+ 3) p5.js ( https://p5js.org/download/ ).  Include the p5.js files in a subdirectory of the Cesium main directory above. <br>
 
 Install each one of the above three, then:
 
