@@ -1,6 +1,6 @@
 # AIFCOMSS
 
-Requires prior installation of:
+Requires the prior installation of:
 
  1) node.js ( https://nodejs.org/en/ )
  2) Cesium ( http://cesiumjs.org/downloads.html )
