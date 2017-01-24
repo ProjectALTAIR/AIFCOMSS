@@ -12,6 +12,6 @@ Install each one of the above three, then:
  b) In that same Cesium main directory, type  "node server.js | tee \<yourlogfile.log\>" , <br>
  c) Then, in a web browser, go to:  http://localhost:8080/AIFCOMSS.html . <br>
 
-You should then have AIFCOMSS running in your web browser.
+You should, then, have AIFCOMSS running in your web browser.
 
 Please ask me any questions that come up (jalbert@uvic.ca).
