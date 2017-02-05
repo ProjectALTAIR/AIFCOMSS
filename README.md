@@ -8,7 +8,7 @@ Requires the prior installation of:
  4) the <a href="https://www.npmjs.com/package/ws">node ws</a> websocket library (which you should install from the npm registry by just typing "npm install ws" on a command line) <br>
  5) p5.js ( https://p5js.org/download/ ).  Include the p5.js files in a subdirectory of the Cesium main directory above. <br>
 
-Install each one of the above three, then:
+Install each one of the above five, then:
 
  a) Download this (AIFCOMSS) repository to your Cesium main directory (which should replace the default server.js file that Cesium has included), <br>
  b) In that same Cesium main directory, type  "node server.js | tee \<yourlogfile.log\>" , <br>
