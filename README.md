@@ -4,7 +4,9 @@ Requires the prior installation of:
 
  1) node.js ( https://nodejs.org/en/ ) <br>
  2) Cesium ( http://cesiumjs.org/downloads.html ) <br>
- 3) p5.js ( https://p5js.org/download/ ).  Include the p5.js files in a subdirectory of the Cesium main directory above. <br>
+ 3) the <a href="https://www.npmjs.com/package/serialport">node serialport</a> library (which you should install from the npm registry by just typing "npm install serialport" on a command line) <br>
+ 4) the <a href="https://www.npmjs.com/package/ws">node ws</a> websocket library (which you should install from the npm registry by just typing "npm install ws" on a command line) <br>
+ 5) p5.js ( https://p5js.org/download/ ).  Include the p5.js files in a subdirectory of the Cesium main directory above. <br>
 
 Install each one of the above three, then:
 
