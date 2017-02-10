@@ -432,7 +432,8 @@ function displayUM7SystemInfo() {
   accelGraphics.translate(0.,0.,150.);
   accelGraphics.camera(-30.*accel[0], 30.*accel[2], 0.);
 
-  image(accelGraphics, 0, 0, 115, 115, 768, 37, 115, 115);
+  // image(accelGraphics, 0, 0, 115, 115, 768, 37, 115, 115);
+  image(accelGraphics, 768, 37, 115, 115, 0, 0, 115, 115);
 
   orientGraphics.camera(30., -30., 0.);
   orientGraphics.translate(0.,0.,-150.);
@@ -470,7 +471,8 @@ function displayUM7SystemInfo() {
   orientGraphics.translate(0.,0.,150.);
   orientGraphics.camera(-30., 30., 0.);
 
-  image(orientGraphics, 0, 0, 150, 150, 880, 18, 150, 150);
+  // image(orientGraphics, 0, 0, 150, 150, 880, 18, 150, 150);
+  image(orientGraphics, 880, 18, 150, 150, 0, 0, 150, 150);
 
   noStroke();
 
