@@ -15,7 +15,7 @@
     <div id="windyty"></div>
 
     <script type="text/javascript">
-          
+
     var windytyInit = {
           // Required: API key
           key: 'fJAcjkGrbADMg2t',
@@ -27,10 +27,28 @@
 //          lon: ALTAIRLon,
           lat:   48.46,
           lon: -123.31,
-          zoom: 11
-      }  
+          zoom: 14,
+          minZoom: 0,
+          maxZoom: 18
+/*
+          layers: [
+            L.tileLayer('http://{s}.tile.cloudmade.com/{key}/997/256/{z}/{x}/{y}.png', {
+              maxZoom: 13,
+              minZoom: 0,
+              attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
+              key: 'BC9A493B41014CAABB98F0471D759707'
+            }),
+            L.tileLayer('http://server.arcgisonline.com/ArcGIS/' + 'rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+              minZoom: 14,
+              maxZoom: 18,
+              attribution: 'Tiles © Esri - '
+                           + 'Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, '
+                           + 'Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'})
+          ]
+*/
+      };
 
-    // Required: Windyty main function is called after 
+    // Required: Windyty main function is called after
     // initialization of API
     //
     // @map is instance of Leaflet maps
@@ -39,11 +57,34 @@
       var aLTAIRLatInput = window.parent.p5frame.document.getElementById('gLTAIRLat');
       var aLTAIRLonInput = window.parent.p5frame.document.getElementById('gLTAIRLon');
       var aLTAIRAltInput = window.parent.p5frame.document.getElementById('gLTAIRAlt');
+      var aLTAIRTerInput = window.parent.cesiumframe.document.getElementById('terrHeight');
       var ALTAIRLat      = parseFloat(aLTAIRLatInput.value);
       var ALTAIRLon      = parseFloat(aLTAIRLonInput.value);
+      var ALTAIRTer      = parseFloat(aLTAIRTerInput.value);
       var ALTAIRAlt      = aLTAIRAltInput.value;
-      var fixedALTAIRAlt = Math.round(ALTAIRAlt);
-      var ALTAIRAltText  = 'ALTAIR&nbsp;=&nbsp;' + fixedALTAIRAlt + '&nbsp;m&nbsp;ASL<br>Terrain&nbsp;=&nbsp;&nbsp;' + '&nbsp;&nbsp;xx&nbsp;m&nbsp;ASL';
+      var roundALTAIRAlt = Math.round(ALTAIRAlt);
+      var roundALTAIRTer = Math.round(ALTAIRTer);
+
+      var ALTAIRAltText  = 'ALTAIR&nbsp;=&nbsp;' + roundALTAIRAlt + '&nbsp;m&nbsp;ASL<br>Terrain&nbsp;=&nbsp;&nbsp;&nbsp;&nbsp;' + roundALTAIRTer +'&nbsp;m&nbsp;ASL';
+
+/*
+      L.tileLayer('http://tiles.mapc.org/basemap/{z}/{x}/{y}.png', {
+        attribution: 'Tiles by <a href="http://mapc.org">MAPC</a>, Data by <a href="http://mass.gov/mgis">MassGIS</a>',
+        maxZoom: 17,
+        minZoom: 9
+      }).addTo(map);
+      L.tileLayer('http://server.arcgisonline.com/ArcGIS/' + 'rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, ',
+        maxZoom: 17,
+        minZoom: 11
+      }).addTo(map);
+*/
+      L.tileLayer('http://b.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, ',
+        maxZoom: 17,
+        minZoom: 12
+      }).addTo(map);
+
 
 //      L.control.zoom.remove();
 //      map.zoomControl.remove();
@@ -64,10 +105,10 @@
         windytyMain(map);
       }, 5000);
     }
-    
+
 
     </script>
 
-    <script async defer src="https://api.windytv.com/v2.3/boot.js"></script> 
+    <script async defer src="https://api.windytv.com/v2.3/boot.js"></script>
   </body>
 </html>
