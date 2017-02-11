@@ -24,6 +24,11 @@
   </style>
 </head>
 <body>
+  <div id="terrainHeightPanel">
+      <label>
+        <input id="terrHeight"    type="hidden"   value="99.9" />
+      </label>
+  </div>
   <div id="cesiumContainer"></div>
   <script>
     Cesium.BingMapsApi.defaultKey = 'Av1e_tU47MpctkXtV8iHe0NcnYUu-ditxZrofMwmqx-2EbRuotZh-P7QYRzt_uis';
@@ -55,12 +60,21 @@
 // var aLTAIRLatInput = window.parent.document.getElementById('fLTAIRLat');
 // var aLTAIRLonInput = window.parent.document.getElementById('fLTAIRLon');
 // var aLTAIRAltInput = window.parent.document.getElementById('fLTAIRAlt');
+var epsilonDegs    = 0.00001;
 var aLTAIRLatInput = window.parent.p5frame.document.getElementById('gLTAIRLat');
 var aLTAIRLonInput = window.parent.p5frame.document.getElementById('gLTAIRLon');
 var aLTAIRAltInput = window.parent.p5frame.document.getElementById('gLTAIRAlt');
-var ALTAIRLat = parseFloat(aLTAIRLatInput.value);
-var ALTAIRLon = parseFloat(aLTAIRLonInput.value);
-var ALTAIRAlt = parseFloat(aLTAIRAltInput.value);
+var ALTAIRLat      = parseFloat(aLTAIRLatInput.value);
+var ALTAIRLon      = parseFloat(aLTAIRLonInput.value);
+var ALTAIRAlt      = parseFloat(aLTAIRAltInput.value);
+
+var dummyRectangle      = Cesium.Rectangle.fromDegrees(ALTAIRLon - epsilonDegs, ALTAIRLat - epsilonDegs, ALTAIRLon + epsilonDegs, ALTAIRLat + epsilonDegs);
+var ALTAIRGroundPos     = [ Cesium.Cartographic.fromDegrees(ALTAIRLon, ALTAIRLat) ];
+var terrainPromise      = Cesium.sampleTerrain(terrainProvider, 12, ALTAIRGroundPos);
+var ALTAIRTerrainHeight = window.document.getElementById('terrHeight');
+Cesium.when(terrainPromise, function(updatedPositions) {
+  ALTAIRTerrainHeight.setAttribute("value", ALTAIRGroundPos[0].height.toString());
+});
 
 var ALTAIR = viewer.entities.add({
     name : 'ALTAIR',
@@ -92,7 +106,7 @@ var ALTAIRBalloon = viewer.entities.add({
     ellipsoid : {
         radii : new Cesium.Cartesian3(8.0, 8.0, 10.0),
         material : Cesium.Color.WHITE
-    }    
+    }
 });
 
 var ALTAIRParachute = viewer.entities.add({
@@ -196,11 +210,18 @@ viewer.clock.onTick.addEventListener(function () {
         ALTAIRLon = parseFloat(aLTAIRLonInput.value);
         ALTAIRAlt = parseFloat(aLTAIRAltInput.value);
 
+        dummyRectangle      = Cesium.Rectangle.fromDegrees(ALTAIRLon - epsilonDegs, ALTAIRLat - epsilonDegs, ALTAIRLon + epsilonDegs, ALTAIRLat + epsilonDegs);
+        ALTAIRGroundPos     = [ Cesium.Cartographic.fromDegrees(ALTAIRLon, ALTAIRLat) ];
+        terrainPromise      = Cesium.sampleTerrain(terrainProvider, 12, ALTAIRGroundPos);
+        Cesium.when(terrainPromise, function(updatedPositions) {
+          ALTAIRTerrainHeight.setAttribute("value", ALTAIRGroundPos[0].height.toString());
+        });
+
         ALTAIR.position          = Cesium.Cartesian3.fromDegrees(ALTAIRLon, ALTAIRLat, ALTAIRAlt);
         ALTAIRGondola.position   = Cesium.Cartesian3.fromDegrees(ALTAIRLon, ALTAIRLat, ALTAIRAlt);
         ALTAIRBalloon.position   = Cesium.Cartesian3.fromDegrees(ALTAIRLon, ALTAIRLat, ALTAIRAlt + 20.);
         ALTAIRParachute.position = Cesium.Cartesian3.fromDegrees(ALTAIRLon, ALTAIRLat, ALTAIRAlt +  7.);
-    
+
         for (var i = 0; i < 4; ++i) {
             propLat[i]    = ALTAIRLat + motorLatDelta[i];
             propLon[i]    = ALTAIRLon + motorLonDelta[i];
