@@ -3,6 +3,7 @@
   <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
     <script src="https://cdn.rawgit.com/Leaflet/Leaflet.label/0.8/dist/leaflet.label.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <style type="text/css">
       #windyty {
                  width: 100%;
@@ -84,10 +85,12 @@
         maxZoom: 17,
         minZoom: 12
       }).addTo(map);
-
-
-//      L.control.zoom.remove();
-//      map.zoomControl.remove();
+		
+		
+		
+		new L.Control.Zoom({ position: 'topleft' }).addTo(map);
+//      
+//      
 //      map.remove();
 //      var tooltip = L.tooltip("hi");
 //      map.zoomControl.setPosition('topleft');
@@ -105,8 +108,19 @@
         windytyMain(map);
       }, 5000);
     }
-
-
+	
+	//Since we dont have access to all the leaflet setup commands, we need to switch after it has loaded.
+	//There isn't a well defined event that we can listen for, but 2 seconds after the ready of that element seems to work
+	$('.leaflet-control-zoom').ready( function() {
+		setTimeout(removeZoomPosition, 4000);
+	});
+	
+	// Takes the content from the top left corner div and places it in the top right corner
+	function removeZoomPosition() {
+		//$('.leaflet-top.leaflet-left').html($('.leaflet-top.leaflet-right').html());
+		$('.leaflet-top.leaflet-right').html('');
+	}
+	
     </script>
 
     <script async defer src="https://api.windytv.com/v2.3/boot.js"></script>
