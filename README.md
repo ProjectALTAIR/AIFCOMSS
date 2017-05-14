@@ -7,9 +7,9 @@ Requires the prior installation of: <br>
 
 Install both of the above, then: <br>
 
- a) Download this (AIFCOMSS) repository to your Cesium main directory (which should replace the default server.js file that Cesium has included), <br>
- b) In that same Cesium main directory, type  "npm update" , this will install any of the necessary node packages including serialport and ws <br>
- b) In that same Cesium main directory, type  "node server.js | tee <i>yourlogfile.log</i>" , <br>
+ a) Download this (AIFCOMSS) repository to your Cesium main directory (which should replace the default server.js file that Cesium has included) ; <br>
+ b) In that same Cesium main directory, type  "npm update" , this will install all the necessary node packages, including serialport and ws ; <br>
+ b) In that same Cesium main directory, type  "node server.js | tee <i>yourlogfile.log</i>" ; <br>
  c) Then, in a web browser, go to:  http://localhost:8080/AIFCOMSS.html . <br>
 
 You should, then, have AIFCOMSS running in your web browser. <br>
