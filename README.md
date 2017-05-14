@@ -2,7 +2,7 @@
 
 Requires the prior installation of: <br>
 
- 1) node.js ( https://nodejs.org/en/ ) <br>
+ 1) Node.js ( https://nodejs.org/en/ ) <br>
  2) Cesium ( http://cesiumjs.org/downloads.html ) <br>
 
 Install both of the above on your computer, then: <br>
