@@ -22,12 +22,17 @@
 			width: 50px;
 		}
 		
+	  .location_marker {
+			width: 300px
+	  }
     </style>
   </head>
   <body>
     <div id="windyty"></div>
 
     <script type="text/javascript">
+
+    var lastMarker = 0;
 
     var windytyInit = {
           // Required: API key
@@ -54,7 +59,7 @@
             L.tileLayer('http://server.arcgisonline.com/ArcGIS/' + 'rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
               minZoom: 14,
               maxZoom: 18,
-              attribution: 'Tiles © Esri - '
+              attribution: 'Tiles ?? Esri - '
                            + 'Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, '
                            + 'Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'})
           ]
@@ -69,14 +74,14 @@
     function windytyMain(map) {
       var aLTAIRLatInput = window.parent.p5frame.document.getElementById('gLTAIRLat');
       var aLTAIRLonInput = window.parent.p5frame.document.getElementById('gLTAIRLon');
-      var aLTAIRAltInput = window.parent.p5frame.document.getElementById('gLTAIRAlt');
-      var aLTAIRTerInput = window.parent.cesiumframe.document.getElementById('terrHeight');
+     // var aLTAIRAltInput = window.parent.p5frame.document.getElementById('gLTAIRAlt');
+     // var aLTAIRTerInput = window.parent.cesiumframe.document.getElementById('terrHeight');
       var ALTAIRLat      = parseFloat(aLTAIRLatInput.value);
       var ALTAIRLon      = parseFloat(aLTAIRLonInput.value);
-      var ALTAIRTer      = parseFloat(aLTAIRTerInput.value);
-      var ALTAIRAlt      = aLTAIRAltInput.value;
-      var roundALTAIRAlt = Math.round(ALTAIRAlt);
-      var roundALTAIRTer = Math.round(ALTAIRTer);
+     // var ALTAIRTer      = parseFloat(aLTAIRTerInput.value);
+     // var ALTAIRAlt      = aLTAIRAltInput.value;
+     // var roundALTAIRAlt = Math.round(ALTAIRAlt);
+     // var roundALTAIRTer = Math.round(ALTAIRTer);
 
 	  //create a custom control element for height
 	  var HeightSlider = L.Control.extend({
@@ -108,6 +113,8 @@
 			return container;
 		}
 	  });	  
+	  
+
 	  
 	  //create a custom control element for height
 	  var TimeSlider = L.Control.extend({
@@ -145,12 +152,118 @@
 	  
 	  
 	  
-	  //add the control element to the page
-	  map.addControl( new HeightSlider());
-	  map.addControl( new TimeSlider());
+	  //add the slider control element to the page
+	  if(!($(".time-slider").length) || !($(".heightslider").length)) {
+		  map.addControl( new HeightSlider());
+		  map.addControl( new TimeSlider());
+		  window.setTimeout(addSliderTitles ,5000);
+	  }
 	  
-      var ALTAIRAltText  = 'ALTAIR&nbsp;=&nbsp;' + roundALTAIRAlt + '&nbsp;m&nbsp;ASL<br>Terrain&nbsp;=&nbsp;&nbsp;&nbsp;&nbsp;' + roundALTAIRTer +'&nbsp;m&nbsp;ASL';
+	  
+	  	  
+	var locationValue = function(values) {
+		 var html, param, value, metric;
+		 var overlays = {
+			 wind: {
+				 metric: 'm/s'
+			 },
+			 gust: {
+				 metric: 'm/s'
+			 },
+			 rain: {
+				 metric: 'mm'
+			 },
+			 temp: {
+				 metric: '??C',
+				 conversion: function(v) { return v - 273.15 }
+			 },
+			 clouds: {
+				 metric: 'mm/h',
+				 conversion: function(v) { return (v - 200) / 60 }
+			 }
+		 };
 
+// 		 var format = function (p, v, m) {
+//			 return p +' : ' + Math.round(v) + m + '</br>';
+//		 };
+		 var format = function (p, v, d, m) {
+			 return p + Math.round(v * Math.pow(10,d))/Math.pow(10,d) + m + '</br>';
+		 };
+
+		 html = '';
+//		 html += format('wind speed', values.wind, 'm/s');
+//		 html += format('wind angle', values.wind, '??');
+		 html += format('Wind speed: ',       values.wind, 1, ' m/s');
+		 html += format('Wind angle:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ', values.angle, 0, '&deg;');
+
+		 if (values.overlayName == 'wind') {
+			 return html;
+		 }
+
+		 param = values.overlayName;
+		 value = values.overlayValue;
+		 metric = overlays[param].metric;
+
+		 if (overlays[param].conversion && overlays[param].conversion != undefined) {
+			 value = overlays[param].conversion(value);
+		 }
+
+		 html += format(param, value, metric);
+
+		 return html;
+	 }  
+
+
+	setInterval(function () {
+		var aLTAIRLatInput = window.parent.p5frame.document.getElementById('gLTAIRLat');
+		var aLTAIRLonInput = window.parent.p5frame.document.getElementById('gLTAIRLon');
+		var aLTAIRAltInput = window.parent.p5frame.document.getElementById('gLTAIRAlt');
+		var aLTAIRTerInput = window.parent.cesiumframe.document.getElementById('terrHeight');
+		var aLTAIRAltInput = window.parent.p5frame.document.getElementById('gLTAIRAlt');
+		var aLTAIRTerInput = window.parent.cesiumframe.document.getElementById('terrHeight');
+		
+        var ALTAIRTer      = parseFloat(aLTAIRTerInput.value);
+        var ALTAIRAlt      = aLTAIRAltInput.value;
+		
+		var roundALTAIRAlt = Math.round(ALTAIRAlt);
+		var roundALTAIRTer = Math.round(ALTAIRTer);
+		
+		var lat = parseFloat(aLTAIRLatInput.value);
+		var lon = parseFloat(aLTAIRLonInput.value);
+		
+		var values = W.interpolation.interpolateValues(lat, lon, roundALTAIRAlt);
+		
+		if (lastMarker != 0) {
+			lastMarker.remove();
+		}
+		if($(".location_marker").length) {
+			$(".location_marker").remove();
+		}
+		
+//		var ALTAIRAltText = 'ALTAIR = ' + roundALTAIRAlt + ' ASL<br/>Terrain =    ' + roundALTAIRTer +'  ASL<br/>';
+		var ALTAIRAltText = '   ALTAIR = ' + roundALTAIRAlt + ' m ASL<br/>    Terrain&nbsp; =  &nbsp;  ' + roundALTAIRTer +'  m ASL<br/>';
+		ALTAIRAltText += locationValue(values);
+		
+		var marker = L.marker([lat, lon])
+//			.bindLabel(ALTAIRAltText, { noHide: true, offset: [20,-40], className: "location_marker" })
+			.bindLabel(ALTAIRAltText, { noHide: true, offset: [30,-50], className: "location_marker" })
+	//      .setOpacity( 0.65 )
+	//      .bindTooltip("hi")
+			.addTo( map );
+		marker.setOpacity( 0.65 );
+		lastMarker = marker;
+		
+		$(".location_marker").html(ALTAIRAltText);
+		removeZoomPosition();
+		
+		//
+		
+	}, 10000);	
+	  
+	  //map.panTo([lat, lon]);
+	  
+	  //var ALTAIRAltText = '<p>ALTAIR = ' + roundALTAIRAlt + ' ASL</p><p>Terrain =    ' + roundALTAIRTer +'  ASL</p>';
+	  //ALTAIRAltText += locationValue(values);
 /*
       L.tileLayer('http://tiles.mapc.org/basemap/{z}/{x}/{y}.png', {
         attribution: 'Tiles by <a href="http://mapc.org">MAPC</a>, Data by <a href="http://mass.gov/mgis">MassGIS</a>',
@@ -177,26 +290,32 @@
 //      map.remove();
 //      var tooltip = L.tooltip("hi");
 //      map.zoomControl.setPosition('topleft');
-      var marker = L.marker([ALTAIRLat, ALTAIRLon])
-        .bindLabel(ALTAIRAltText, { noHide: true, offset: [20,-40] })
+      /*var marker = L.marker([ALTAIRLat, ALTAIRLon])
+        .bindLabel(ALTAIRAltText, { noHide: true, offset: [20,-40], className: "location_marker" })
 //        .setOpacity( 0.65 )
 //        .bindTooltip("hi")
         .addTo( map );
-      marker.setOpacity( 0.65 );
+      marker.setOpacity( 0.65 );*/
 
       map.panTo([ALTAIRLat, ALTAIRLon]);
 
-      window.setTimeout(function() {
-        marker.remove();
+      /*window.setTimeout(function() {
+		//marker.remove();
+		$(".leaflet-control-container").children().each( function() {
+			$(this).children().each( function() {
+				$(this).remove();
+			});
+		});
         windytyMain(map);
-      }, 5000);
+
+      }, 10000);*/
     }
 	
 	//Since we dont have access to all the leaflet setup commands, we need to switch after it has loaded.
 	//There isn't a well defined event that we can listen for, but 2 seconds after the ready of that element seems to work
 	$('document').ready( function() {
 		setTimeout(removeZoomPosition, 4000);
-		setTimeout(addSliderTitles, 4000);
+		//setTimeout(addSliderTitles, 4000);
 		
 	});
 
