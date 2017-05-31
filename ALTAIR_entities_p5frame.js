@@ -5,6 +5,7 @@ var    arduinoPortString2     = "COM4";
 var    portSpeed              =  9600;
 var    numAlarms              =    30;
 var    timeBetweenAlarmSounds =    20;    // in approximately 20's of milliseconds (so e.g. a value of 30 ~= 0.6 seconds)
+var    timeBtwScopeTrkComms   =   150;    // in approximately 20's of milliseconds (so e.g. a value of 30 ~= 0.6 seconds)
 var    gravAcc                =     9.81; // m/s^2
 
 var    maxSetting             =    10.0;  // max power setting for each motor: setting ranges from 0 - 10
@@ -35,6 +36,7 @@ var    alarm;
 var    blockButtons      = false;
 var    alarmOn           = []; // There are  numAlarms  alarms.  For each one: 0 == off, 1 == on but silenced, 2 == on (and not silenced)
 var    alarmCounter      = 0;
+var    scopeTrackCounter = 0;
 
 var    setting           = [];
 var    rpm               = [];
@@ -61,6 +63,8 @@ var    heliumBleedValveRotAng;
 var    controlGroundStationName;
 var    numMonGroundStations;
 var    monGroundStationName = [];
+
+var    doTelescopeALTAIRTracking = false;
 
 // var text;
 var socket = new WebSocket("ws://localhost:8081");
@@ -110,6 +114,7 @@ function draw() {
    displayPropulsionSystemInfo();
    displayUM7SystemInfo();
    displayGlobalStatusInfo();
+   determineTelescopeAltAz();
 }
 
 function getAltairArduinoInfoLine() {
@@ -983,6 +988,133 @@ function makeAutomationButtons() {
 
 }
 
+function determineTelescopeAltAz() {
+
+  makeTelescopeTrackingButton();
+
+  if (doTelescopeALTAIRTracking) {
+    if (scopeTrackCounter % timeBtwScopeTrkComms == 0) sendScopeTrackingCommand(getScopeTrackingCommand());
+    ++scopeTrackCounter;
+  }
+}
+
+function sendScopeTrackingCommand(commandText) {
+   socket.send("MOVESCOPE: " + commandText);
+}
+
+// implement Yorke's ComputeTarget() subroutine (from his ScopeControl.bas file) to find alt-az of target
+function getScopeTrackingCommand() {
+  var i      = 0;
+  var j      = 0;
+
+  // WGS84 parameters
+  var a      = 6378137.;
+  var e2     = 0.00669437999014;
+
+  // All latitudes are geodetic
+  // Find Target position in ECEF coords
+  var sinLat = sin(radians(lat));
+  var cosLat = cos(radians(lat));
+  var sinLon = sin(radians(long));
+  var cosLon = cos(radians(long));
+
+  var chi    = sqrt(1.0 - (e2 * sinLat * sinLat));
+  var r0     = (a / chi) + ele;
+
+  var r1E    = [];
+  r1E[0]     = r0 * cosLat * cosLon;
+  r1E[1]     = r0 * cosLat * sinLon;
+  r1E[2]     = (a / chi * (1.0 - e2) + ele) * sinLat;
+
+
+  // Find Base position in ECEF coords
+  sinLat     = sin(radians(groundLat));
+  cosLat     = cos(radians(groundLat));
+  sinLon     = sin(radians(groundLong));
+  cosLon     = cos(radians(groundLong));
+  
+  chi        = sqrt(1.0 - e2 * sinLat * sinLat);
+  r0         = (a / chi) + groundEle;
+
+  var r0E    = [];
+  r0E[0]     = r0 * cosLat * cosLon;
+  r0E[1]     = r0 * cosLat * sinLon;
+  r0E[2]     = (a / chi * (1.0 - e2) + groundEle) * sinLat;
+
+  // Find range vector in Earth coords
+  var m      = [];
+  var sE     = [];
+  var sB     = [];
+  var ss     = 0.;
+  for (i = 0; i < 3; ++i) {  
+    sE[i]    = r1E[i] - r0E[i];
+    ss       = ss + (sE[i] * sE[i]);
+    m[i]     = [];
+  }
+  var range  = sqrt(ss);
+  if (range == 0.) range = 1.  // avoid division by zero
+
+  // Rotate Earth coords to base coords:
+  // Earth coordinate system (ECEF) has: x through lat/lon=0/0
+  //                                     y through lat/lon=90/0 and
+  //                                     z through north pole
+  //                                     Origin at geocenter
+  // Base coordinate system (NED)   has: x horizontal north from base location
+  //                                     y horizontal east
+  //                                     z vertical down  (normal to ellipsoid surface)
+  //                                     Origin at Base
+  m[0][0]    = -sinLat * cosLon;
+  m[0][1]    = -sinLat * sinLon;
+  m[0][2]    =  cosLat;
+  m[1][0]    = -sinLon;
+  m[1][1]    =  cosLon;
+  m[1][2]    =  0.;
+  m[2][0]    = -cosLat * cosLon;
+  m[2][1]    = -cosLat * sinLon;
+  m[2][2]    = -sinLat;
+
+  for (i = 0; i < 3; ++i) {
+    sB[i]    = 0.;
+    for (j = 0; j < 3; ++j) {    
+      sB[i]  = sB[i] + sE[j] * m[i][j];
+    }
+  }
+
+  // Compute Az and El (from base location to target).  Use 0 to 360 deg (0 to 2Pi rad) for Az, 0 to 90 deg (0 to Pi/2 rad) for El.
+
+  var dist   = Math.sqrt(sB[0] * sB[0] + sB[1] * sB[1]);       // Ground distance
+  if (dist == 0.) {                                            // Avoid division by zero
+    dist     = 1.;
+    sB[0]    = 1.;
+    sB[1]    = 1.;
+  }
+  var az     =  Math.atan2(sB[1], sB[0]);
+  if (az < 0.) az += TWO_PI;
+  var el     = -Math.atan2(sB[2], dist);
+
+  // Refraction correction is based on Saemundsson's Formula, which gives the
+  // elevation offset for a celestial object as a function of actual elevation.
+  // Properly, it only applies to the entire airmass, so will only be accurate
+  // if the target is very high in the atmosphere.  Consequently
+  // we only apply a correction equal to the fractional vertical airmass 
+  // multiplied by the nominal correction.  We approximate the 
+  // fractional vertical airmass by (1 - e^(-z/H)), where z is the 
+  // altitude difference between ALTAIR and the ground station, and H
+  // is the typical scale height of Earth's atmosphere, equal to 7650 meters. 
+  // The magnitude of the refraction correction is negligibly small for
+  // altitudes more than 40 deg above the horizon.  The formula
+  // gives the elevation correction in minutes of arc.
+
+  var refraction = 1.02 / tan(el + (10.3 / (el + 5.11)));
+  el = el + (refraction * radians(60.) * (1. - exp((groundEle-ele)/7650.)));
+
+  var azString = hex(round(az * 65536. / TWO_PI), 4);
+  var elString = hex(round(el * 65536. / TWO_PI), 4);
+
+  return "B" + azString + "," + elString;
+}
+
+
 function drawType(theText, x, y, r, g, b) {
   fill(r, g, b);
   text(theText, x, y);
@@ -1344,6 +1476,37 @@ function makeLightSourceButtons() {
 
 }
 
+function makeTelescopeTrackingButton() {
+  var x = 1175., y = 260.;
+  var xSize = 145., ySize = 50., cornerRadius = 15.;
+//  stroke(0);
+  if (mouseX > x && mouseX < x+xSize && 
+      mouseY > y && mouseY < y+ySize) {
+    overButton = 98;
+    if (mouseIsPressed) {
+      fill(1.,0.,0.);
+    } else {
+      overButton = -999;
+      fill(0., 0., 0.);
+    }
+    stroke(1., 1., 1.);
+  } else {
+    fill(1., 1., 1.);
+    stroke(0., 0., 0.);
+  }
+  rect(x,                        y,                                      xSize,      ySize, cornerRadius);  
+  textSize(17);
+  noStroke();
+  if (doTelescopeALTAIRTracking) {
+    drawType("Stop Telescope",            x+18., y+20., 1.,      0.,                 0.);
+  } else {
+    drawType("Start Telescope",           x+15., y+20., 1.,      0.,                 0.);
+  }
+  drawType("ALTAIR Tracking",             x+10., y+38., 1.,      0.,                 0.);
+  stroke(0., 0., 0.);
+  textSize(17);
+}
+
 function anyAlarmIsOn() {
   for (var i = 0; i < numAlarms; ++i) {
     if ( alarmOn[i] == 2 ) return true;
@@ -1504,6 +1667,13 @@ function mouseReleased() {
       socket.send('m'); socket.send('l');   // 'm'odify 'l'ight (ensure we avoid modifications due to noise)
       socket.send(String.fromCharCode(lightNum+("f".charCodeAt(0))));            // write 'f' if diffusive light source 0, 'g' if diffusive light source 1, etc.
       socket.send("LOG: Gave command to turn OFF diffusive light source # " + lightNum);
+      break;
+    case 98:
+      overButton = -999;
+      doTelescopeALTAIRTracking = !doTelescopeALTAIRTracking;
+      scopeTrackCounter = 0;
+      if (doTelescopeALTAIRTracking) socket.send("LOG: Started telescope ALTAIR tracking");
+      else                           socket.send("LOG: Stopped telescope ALTAIR tracking");
       break;
     case 99:
       overButton = -999;

@@ -11,6 +11,9 @@
 
 // JA Serial port connection code BEGIN  (added 13sep16)
 
+    console.log("Thinking for a moment...");
+
+    var fs = require('fs');                     // for writing out to cu.usbserial, in order to move the telescope
 
     var serialport = require('serialport');
     var WebSocketServer = require('ws').Server;
@@ -25,7 +28,6 @@
     var genericPortName        = "Connected serial port name: ";
     var myPort                 = null;
 
-    console.log("");
     serialport.list(function (err, ports) {
       ports.forEach(function(port) {
         console.log(genericPortName.concat(port.comName));
@@ -49,7 +51,15 @@
     function sendToSerial(data) {
         var date = new Date(); 
         if (data.substring(0, 4) == "LOG:") {
-           console.log(data + "   " + date);
+           console.log(data + "   " + date + " + " + date.getMilliseconds() + " milliseconds");
+        } else if (data.substring(0, 11) == "MOVESCOPE: ") {
+           var pureData = data.replace("MOVESCOPE: ", "");
+           console.log(data + "   " + date + " + " + date.getMilliseconds() + " milliseconds");
+           fs.appendFile("/dev/cu.usbserial", pureData, function(err) {
+              if (err) {
+                return console.log(err);
+              }
+           }); 
         } else {
            if (myPort != null) {
               console.log("Sending to serial: " + data + " at: " + date + " + " + date.getMilliseconds() + " milliseconds");
