@@ -1106,7 +1106,7 @@ function getScopeTrackingCommand() {
   // gives the elevation correction in minutes of arc.
 
   var refraction = 1.02 / tan(radians(degrees(el) + (10.3 / (degrees(el) + 5.11))));
-  el = el + (refraction * radians(60.) * (1. - exp((groundEle-ele)/7650.)));
+  el = el + (radians(refraction/60.) * (1. - exp((groundEle-ele)/7650.)));
 
   var azString = hex(round(az * 65536. / TWO_PI), 4);
   var elString = hex(round(el * 65536. / TWO_PI), 4);
