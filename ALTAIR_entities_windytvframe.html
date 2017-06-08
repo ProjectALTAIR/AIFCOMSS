@@ -33,6 +33,8 @@
     <script type="text/javascript">
 
     var lastMarker = 0;
+    var lastPolyline = 0;
+    var latLonsALTAIRPath = [];
 
     var windytyInit = {
           // Required: API key
@@ -82,7 +84,7 @@
      // var ALTAIRAlt      = aLTAIRAltInput.value;
      // var roundALTAIRAlt = Math.round(ALTAIRAlt);
      // var roundALTAIRTer = Math.round(ALTAIRTer);
-
+        
 	  //create a custom control element for height
 	  var HeightSlider = L.Control.extend({
 		options: {
@@ -231,10 +233,15 @@
 		var lat = parseFloat(aLTAIRLatInput.value);
 		var lon = parseFloat(aLTAIRLonInput.value);
 		
+                latLonsALTAIRPath.push([lat,lon]);
+
 		var values = W.interpolation.interpolateValues(lat, lon, roundALTAIRAlt);
 		
 		if (lastMarker != 0) {
 			lastMarker.remove();
+		}
+		if (lastPolyline != 0) {
+			lastPolyline.remove();
 		}
 		if($(".location_marker").length) {
 			$(".location_marker").remove();
@@ -244,6 +251,9 @@
 		var ALTAIRAltText = '   ALTAIR = ' + roundALTAIRAlt + ' m ASL<br/>    Terrain&nbsp; =  &nbsp;  ' + roundALTAIRTer +'  m ASL<br/>';
 		ALTAIRAltText += locationValue(values);
 		
+                var thePolyline = L.polyline(latLonsALTAIRPath, {color: 'red'}).addTo( map );
+                lastPolyline = thePolyline;
+
 		var marker = L.marker([lat, lon])
 //			.bindLabel(ALTAIRAltText, { noHide: true, offset: [20,-40], className: "location_marker" })
 			.bindLabel(ALTAIRAltText, { noHide: true, offset: [30,-50], className: "location_marker" })
