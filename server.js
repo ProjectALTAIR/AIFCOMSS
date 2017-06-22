@@ -2,16 +2,14 @@
     'use strict';
     /*jshint node:true*/
 
+    console.log("Thinking for a moment...");
+
     var express = require('express');
     var compression = require('compression');
     var url = require('url');
     var request = require('request');
 
-
-
 // JA Serial port connection code BEGIN  (added 13sep16)
-
-    console.log("Thinking for a moment...");
 
     var fs = require('fs');                     // for writing out to cu.usbserial, in order to move the telescope
 
@@ -25,15 +23,19 @@
     var arduinoPortString1     = "cu.usbmodem";
     var arduinoPortString2     = "COM4";
     var arduinoPortName        = "";
-    var genericPortName        = "Connected serial port name: ";
+    var genericPortNamesList   = "Connected serial port names: ";
     var myPort                 = null;
 
     serialport.list(function (err, ports) {
+      var isFirstPort = true;
       ports.forEach(function(port) {
-        console.log(genericPortName.concat(port.comName));
+        if (!isFirstPort) genericPortNamesList = genericPortNamesList.concat(" , ");
+        genericPortNamesList = genericPortNamesList.concat(port.comName);
         if (port.comName.indexOf(arduinoPortString2) != -1) arduinoPortName = port.comName;
         if (port.comName.indexOf(arduinoPortString1) != -1) arduinoPortName = port.comName;
+        isFirstPort = false;
       });
+      console.log(genericPortNamesList);
     });
 
     function showPortOpen() {

@@ -60,7 +60,7 @@
 // var aLTAIRLatInput = window.parent.document.getElementById('fLTAIRLat');
 // var aLTAIRLonInput = window.parent.document.getElementById('fLTAIRLon');
 // var aLTAIRAltInput = window.parent.document.getElementById('fLTAIRAlt');
-var epsilonDegs    = 0.00001;
+var epsilonDegs    = 0.0001;
 var aLTAIRLatInput = window.parent.p5frame.document.getElementById('gLTAIRLat');
 var aLTAIRLonInput = window.parent.p5frame.document.getElementById('gLTAIRLon');
 var aLTAIRAltInput = window.parent.p5frame.document.getElementById('gLTAIRAlt');
@@ -74,6 +74,13 @@ var terrainPromise      = Cesium.sampleTerrain(terrainProvider, 12, ALTAIRGround
 var ALTAIRTerrainHeight = window.document.getElementById('terrHeight');
 Cesium.when(terrainPromise, function(updatedPositions) {
   ALTAIRTerrainHeight.setAttribute("value", ALTAIRGroundPos[0].height.toString());
+});
+
+var theLocation = Cesium.Cartesian3.fromDegrees(ALTAIRLon - epsilonDegs, ALTAIRLat - epsilonDegs, ALTAIRAlt+100.);
+
+viewer.camera.flyTo({
+    destination : theLocation,
+    duration    : 1.0
 });
 
 var ALTAIR = viewer.entities.add({
