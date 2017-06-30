@@ -1,7 +1,7 @@
 # AIFCOMSS
 
 First, make sure that your computer has Python ( https://www.python.org -- version 2.7 is best ) installed (and if not,
-then please install it).  Then additionally, for the specific case of Windows machines (but not necessary on Mac or Linux), please also first install Visual Studio ( https://www.visualstudio.com , or make sure Visual Studio is already installed on your Windows machine). <br>
+then please install it, using the instructions on the https://www.python.org website).  Then additionally, for the specific case of Windows machines (but not necessary on Mac or Linux), please also first install Visual Studio ( https://www.visualstudio.com , or make sure Visual Studio is already installed on your Windows machine). <br>
 
 Following that, on <u>any</u> platform (Mac, Linux, or Windows), we require the installation of: <br>
 
