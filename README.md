@@ -2,7 +2,7 @@
 
 First, make sure that your Mac, Linux, or Windows computer has Python ( https://www.python.org -- version 2.7 is best ) installed (and if not, then please install it, using the instructions on the https://www.python.org website). <br>
 
-Then additionally, for the specific case of Windows machines (but this is not necessary on Mac or Linux), please also first install Visual Studio ( https://www.visualstudio.com , or make sure Visual Studio is already installed on your Windows machine). Note that on Windows machines, commands must be run in powershell, rather than in the standard Windows command -- you can access powershell from the standard Windows command by typing: $ powershell<br>
+Then additionally, for the specific case of Windows machines (but this is not necessary on Mac or Linux), please also first install Visual Studio ( https://www.visualstudio.com , or make sure Visual Studio is already installed on your Windows machine). Note that on Windows machines, after installing Visual Studio, all commands below must be run in powershell, rather than in the standard Windows command -- you can access powershell from the standard Windows command by typing: $ powershell<br>
 
 Following that, on <i>any</i> platform (Mac, Linux, or Windows), we require the installation of: <br>
 
