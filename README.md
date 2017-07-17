@@ -4,7 +4,7 @@ First, make sure that your Mac, Linux, or Windows computer has Python ( https://
 
 Then additionally, for the specific case of Windows machines (but this is not necessary on Mac or Linux), please also then install Visual Studio ( https://www.visualstudio.com , or make sure Visual Studio is already installed on your Windows machine). Note that on Windows machines, after installing Visual Studio, all commands below must be run in powershell, rather than in the standard Windows command -- you can access powershell from the standard Windows command line by typing: $ powershell<br>
 
-Following that, on <i>any</i> platform (Mac, Linux, or Windows), we require the installation of: <br>
+Following that, on <i>any</i> platform (Mac, Linux, or Windows), this package requires the installation of: <br>
 
  1) Node.js ( https://nodejs.org/en/ ) <br>
  2) Cesium ( http://cesiumjs.org/downloads.html ) <br>
